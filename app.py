@@ -278,7 +278,14 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
-            border:1px solid #E5E0F5;border-radius:16px;">
+ st.markdown(
+    """
+    <div style="background: linear-gradient(120deg, #EDE9FE, #E3F0FF, #DDF5EC); border: 1px solid #E5E0F5; border-radius: 16px; margin-top: 28px; padding: 18px; text-align: center;">
+        Your HTML content goes here
+    </div>
+    """,
+    unsafe_allow_html=True
+)
   <div style="font-weight:800;color:#51477A;">🩺 PharmaGuard</div>
   <div style="font-size:12px;color:#667085;margin-top:4px;">
     Educational information only • Consult a qualified clinician or pharmacist
