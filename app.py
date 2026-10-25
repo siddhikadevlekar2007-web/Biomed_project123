@@ -82,6 +82,7 @@ footer { visibility: hidden; }
 </style>
 """, unsafe_allow_html=True)
 
+
 def pastel_banner(title, subtitle, emoji="🩺"):
     st.markdown(f"""
     <div style="background:linear-gradient(120deg,#EDE9FE,#E3F0FF,#DDF5EC);
@@ -93,23 +94,25 @@ def pastel_banner(title, subtitle, emoji="🩺"):
     """, unsafe_allow_html=True)
 
 
-st.markdown(
-    """
-    <div style="background:#fff3cd;border:2px solid #d39e00;border-radius:8px;
-            st.caption("Pastel medical dashboard")
-        st.divider()
-        st.subheader("Sign in")
-        with st.form("login_form"):
-            role = st.selectbox("I am a", ("User", "Admin"))
-            username = st.text_input("Username")
-            password = st.text_input("Password", type="password")
-            submitted = st.form_submit_button("Sign in", use_container_width=True)
-        if submitted:
-            if auth.authenticate(username, password, role):
-                st.success(f"Signed in as {role}.")
-                st.rerun()
+def _render_login() -> bool:
+    if st.session_state.get("authenticated"):
+        return True
+    pastel_banner("PharmaGuard Sign In", "Access educational medication interaction data.", "🩺")
+    with st.form("login_form"):
+        role = st.selectbox("I am a", ("User", "Admin"))
+        username = st.text_input("Username")
+        password = st.text_input("Password", type="password")
+        submitted = st.form_submit_button("Sign in", use_container_width=True)
+    if submitted:
+        if auth.authenticate(username, password, role):
+            st.session_state["authenticated"] = True
+            st.session_state["username"] = username
+            st.session_state["role"] = role
+            st.success(f"Signed in as {role}.")
+            st.rerun()
+        else:
             st.error("Sign-in failed. Check your role, username, and password.")
-        st.caption("Demo accounts: User `user` / `user123`; Admin `admin` / `admin123`.")
+    st.caption("Demo accounts: User `user` / `user123`; Admin `admin` / `admin123`.")
     return bool(st.session_state.get("authenticated"))
 
 
@@ -166,8 +169,39 @@ def _render_checker(records: list[dict[str, Any]]) -> None:
         "💊"
     )
     st.write("Select medications you currently take or are considering discussing with a clinician.")
-    medications = sorted(
-        {str(row[field]).strip() for row in records for field in ("drug1", "drug2")},
+    
+    if records:
+        medications = sorted(list({str(row[field]).strip() for row in records for field in ("drug1", "drug2")}))
+        selected = st.selectbox("Select a medication to review interactions", [""] + medications)
+        if selected:
+            filtered = [r for r in records if r["drug1"].casefold() == selected.casefold() or r["drug2"].casefold() == selected.casefold()]
+            for row in filtered:
+                _render_interaction_result(row)
+        else:
+            st.info("Choose a medication above to inspect its interactions.")
+
+
+def _render_analytics(records: list[dict[str, Any]]) -> None:
+    pastel_banner("Analytics & Insights", "Overview of interaction severities and distribution.", "📊")
+    if not records:
+        st.info("No records available.")
+        return
+    df = pd.DataFrame(records)
+    col1, col2 = st.columns(2)
+    with col1:
+        if "severity" in df.columns:
+            fig = px.pie(df, names="severity", title="Interactions by Severity", color_discrete_sequence=px.colors.qualitative.Pastel)
+            st.plotly_chart(fig, use_container_width=True)
+    with col2:
+        if "percentile" in df.columns:
+            fig2 = px.histogram(df, x="percentile", nbins=10, title="Risk Percentile Distribution", color_discrete_sequence=["#A99BEA"])
+            st.plotly_chart(fig2, use_container_width=True)
+
+
+def _render_admin(records: list[dict[str, Any]]) -> None:
+    pastel_banner("Admin Dashboard", "Add new medication interactions and manage the database.", "⚙️")
+    with st.form("add_interaction_form"):
+        first, second = st.columns(2)
         with first:
             drug1 = st.text_input("Medication 1")
             severity = st.selectbox("Severity", database.SEVERITIES)
@@ -197,14 +231,11 @@ def _render_checker(records: list[dict[str, Any]]) -> None:
             )
             refreshed = database.get_interactions()
             st.session_state["faiss_engine"] = DrugInteractionSearch(refreshed)
-            st.session_state["faiss_signature"] = tuple(
-                (row.get("id"), row["drug1"].casefold(), row["drug2"].casefold())
-                for row in refreshed
-            )
             st.success("Interaction saved; the search index has been rebuilt.")
             st.rerun()
         except (ValueError, RuntimeError) as exc:
             st.error(str(exc))
+    
     st.subheader("Current knowledge base")
     st.dataframe(
         pd.DataFrame(
@@ -233,7 +264,6 @@ except RuntimeError as exc:
     st.stop()
 
 if not _render_login():
-    st.info("Sign in to access PharmaGuard.")
     st.stop()
 
 with st.sidebar:
@@ -261,47 +291,13 @@ elif page == "Admin dashboard" and st.session_state["role"] == "Admin":
     _render_admin(interaction_records)
 
 # ---------- Footer ----------
-st.markdown("""
 st.markdown(
-    """
-    <div style="margin-top:28px;padding:18px;text-align:center;">
-        <!-- your content here -->
-    </div>
-    """,
-    unsafe_allow_html=True,
-)
-st.markdown(
-    """
-    <div style="background: linear-gradient(120deg, #EDE9FE, #E3F0FF, #DDF5EC); margin-top: 28px; padding: 18px; text-align: center;">
-        Your content here
-    </div>
-    """,
-    unsafe_allow_html=True
-)
- st.markdown(
     """
     <div style="background: linear-gradient(120deg, #EDE9FE, #E3F0FF, #DDF5EC); border: 1px solid #E5E0F5; border-radius: 16px; margin-top: 28px; padding: 18px; text-align: center;">
-        Your HTML content goes here
-    </div>
-    """,
-    unsafe_allow_html=True
-)
-# 1. Header / Footer info block
-st.markdown(
-    """
-    <div style="font-weight:800; color:#51477A;">🩺 PharmaGuard</div>
-    <div style="font-size:12px; color:#667085; margin-top:4px;">
-        Educational information only • Consult a qualified clinician or pharmacist
-    </div>
-    """,
-    unsafe_allow_html=True
-)
-
-# 2. Styled container box (add your content and background color as needed)
-st.markdown(
-    """
-    <div style="padding: 14px 18px; color: #4a3900; font-weight: 600; margin-bottom: 16px; background-color: #FEF3C7; border-radius: 8px;">
-        Your warning or message text goes here
+        <div style="font-weight:800; color:#51477A;">🩺 PharmaGuard</div>
+        <div style="font-size:12px; color:#667085; margin-top:4px;">
+            Educational information only • Consult a qualified clinician or pharmacist
+        </div>
     </div>
     """,
     unsafe_allow_html=True
