@@ -1,5 +1,4 @@
-      """PharmaGuard: educational medication interaction information assistant."""
-
+"""PharmaGuard: educational medication interaction information assistant."""
 from __future__ import annotations
 
 import logging
