@@ -286,12 +286,23 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
-  <div style="font-weight:800;color:#51477A;">🩺 PharmaGuard</div>
-  <div style="font-size:12px;color:#667085;margin-top:4px;">
-    Educational information only • Consult a qualified clinician or pharmacist
-  </div>
-</div>
-""", unsafe_allow_html=True)
+# 1. Header / Footer info block
+st.markdown(
+    """
+    <div style="font-weight:800; color:#51477A;">🩺 PharmaGuard</div>
+    <div style="font-size:12px; color:#667085; margin-top:4px;">
+        Educational information only • Consult a qualified clinician or pharmacist
+    </div>
+    """,
+    unsafe_allow_html=True
+)
 
-    
-                padding:14px 18px;color:#4a3900;font-weight:600;margin-bottom:16px">
+# 2. Styled container box (add your content and background color as needed)
+st.markdown(
+    """
+    <div style="padding: 14px 18px; color: #4a3900; font-weight: 600; margin-bottom: 16px; background-color: #FEF3C7; border-radius: 8px;">
+        Your warning or message text goes here
+    </div>
+    """,
+    unsafe_allow_html=True
+)
