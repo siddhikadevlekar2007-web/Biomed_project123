@@ -262,7 +262,14 @@ elif page == "Admin dashboard" and st.session_state["role"] == "Admin":
 
 # ---------- Footer ----------
 st.markdown("""
-<div style="margin-top:28px;padding:18px;text-align:center;
+st.markdown(
+    """
+    <div style="margin-top:28px;padding:18px;text-align:center;">
+        <!-- your content here -->
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
             background:linear-gradient(120deg,#EDE9FE,#E3F0FF,#DDF5EC);
             border:1px solid #E5E0F5;border-radius:16px;">
   <div style="font-weight:800;color:#51477A;">🩺 PharmaGuard</div>
